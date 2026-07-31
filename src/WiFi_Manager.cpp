@@ -9,8 +9,13 @@ WiFi_Manager::WiFi_Manager(
   char (&password)[MQTT_PASSWORD_MAX_LEN],
   char (&client_id)[MQTT_CLIENT_ID_MAX_LEN],
   char (&topic)[MQTT_TOPIC_MAX_LEN],
+  bool enable_portal,
   uint8_t config_portal_timeout,
-  uint8_t connect_timeout
+  bool auto_connect,
+  uint8_t connect_timeout,
+  bool auto_reconnect,
+  uint16_t reconnect_interval,
+  uint8_t max_reconnect_attempts
 ) :
   _MQTT_Server(server),
   _MQTT_Port(port),
@@ -19,8 +24,13 @@ WiFi_Manager::WiFi_Manager(
   _MQTT_Client_ID(client_id),
   _MQTT_Topic(topic),
 
+  _enable_portal(enable_portal),
   _config_portal_timeout(config_portal_timeout),
+  _auto_connect(auto_connect),
   _connect_timeout(connect_timeout),
+  _auto_reconnect(auto_reconnect),
+  _reconnect_interval(reconnect_interval),
+  _max_reconnect_attempts(max_reconnect_attempts),
 
   _Custom_MQTT_Server("MQTT_Server", "MQTT Server", server, MQTT_SERVER_MAX_LEN),
   _Custom_MQTT_Port("MQTT_Port", "MQTT Port", port, MQTT_PORT_MAX_LEN),
@@ -41,20 +51,54 @@ void WiFi_Manager::begin(const char *ap_name, const char *ap_password)
   
   _WiFi_Manager.setSaveConfigCallback(save_config_callback);
 
+  _WiFi_Manager.setEnableConfigPortal(_enable_portal);
   _WiFi_Manager.setConfigPortalTimeout(_config_portal_timeout);
   _WiFi_Manager.setConnectTimeout(_connect_timeout);
 
   if (!_WiFi_Manager.autoConnect(_AP_Name, _AP_Password))
   {
-    Serial.println("Failed connect to WiFi");
-    Serial.println("Restarting...");
-    Serial.println();
-    ESP.restart();
+    Serial.println("[WiFi_Manager] Failed connect to WiFi");
+    
+    if (_auto_connect) 
+    {
+      Serial.println("[WiFi_Manager] Restarting...");
+      Serial.println();
+      ESP.restart();
+    } 
+    else 
+    {
+      Serial.println("[WiFi_Manager] Proceeding offline, will try to reconnect in background...");
+      Serial.println();
+    }
   }
   
   Serial.println();
-  Serial.println("WiFi Connected");
-  Serial.printf("IP address: %s\n", WiFi.localIP().toString().c_str());
+  Serial.println("[WiFi_Manager] WiFi Connected");
+  Serial.printf("[WiFi_Manager] IP address: %s\n", WiFi.localIP().toString().c_str());
+}
+
+void WiFi_Manager::reconnect()
+{
+  if ((millis() - _last_time > _reconnect_interval) and _auto_reconnect)
+  {
+    if (WiFi.status() != WL_CONNECTED)
+    {
+      _reconnect_attempts++;
+      Serial.printf("\n[WiFi_Manager] Reconnecting...(%d attempt)\n", _reconnect_attempts);
+      WiFi.reconnect();
+      if (_max_reconnect_attempts > 0 && _reconnect_attempts >= _max_reconnect_attempts)
+      {
+        _reconnect_attempts = 0;
+        Serial.println();
+        Serial.println("[WiFi_Manager] Reconnecting timeout, Restarting...");
+        Serial.println();
+        ESP.restart();
+      }
+    }
+    else {_reconnect_attempts = 0;}
+
+    _last_time = millis();
+  }
 }
 
 void WiFi_Manager::load_config()
@@ -83,13 +127,13 @@ void WiFi_Manager::load_config()
   _WiFi_Manager.addParameter(&_Custom_MQTT_Topic);
 
   Serial.println();
-  Serial.println("CONFIGURATION LOADED");
-  Serial.printf("MQTT Server       : %s\n", _MQTT_Server);
-  Serial.printf("MQTT Port         : %s\n", _MQTT_Port);
-  Serial.printf("MQTT Username     : %s\n", _MQTT_Username);
-  Serial.printf("MQTT Password     : %s\n", _MQTT_Password);
-  Serial.printf("MQTT Client ID    : %s\n", _MQTT_Client_ID);
-  Serial.printf("MQTT Topic        : %s\n", _MQTT_Topic);
+  Serial.println("[WiFi_Manager] CONFIGURATION LOADED");
+  Serial.printf("[WiFi_Manager] MQTT Server       : %s\n", _MQTT_Server);
+  Serial.printf("[WiFi_Manager] MQTT Port         : %s\n", _MQTT_Port);
+  Serial.printf("[WiFi_Manager] MQTT Username     : %s\n", _MQTT_Username);
+  Serial.printf("[WiFi_Manager] MQTT Password     : %s\n", _MQTT_Password);
+  Serial.printf("[WiFi_Manager] MQTT Client ID    : %s\n", _MQTT_Client_ID);
+  Serial.printf("[WiFi_Manager] MQTT Topic        : %s\n", _MQTT_Topic);
 }
 
 void WiFi_Manager::save_config()
@@ -111,19 +155,19 @@ void WiFi_Manager::save_config()
   _prefs.end();
   
   Serial.println();
-  Serial.println("CONFIGURATION SAVED");
-  Serial.printf("MQTT Server       : %s\n", _MQTT_Server);
-  Serial.printf("MQTT Port         : %s\n", _MQTT_Port);
-  Serial.printf("MQTT Username     : %s\n", _MQTT_Username);
-  Serial.printf("MQTT Password     : %s\n", _MQTT_Password);
-  Serial.printf("MQTT Client ID    : %s\n", _MQTT_Client_ID);
-  Serial.printf("MQTT Topic        : %s\n", _MQTT_Topic);
+  Serial.println("[WiFi_Manager] CONFIGURATION SAVED");
+  Serial.printf("[WiFi_Manager] MQTT Server       : %s\n", _MQTT_Server);
+  Serial.printf("[WiFi_Manager] MQTT Port         : %s\n", _MQTT_Port);
+  Serial.printf("[WiFi_Manager] MQTT Username     : %s\n", _MQTT_Username);
+  Serial.printf("[WiFi_Manager] MQTT Password     : %s\n", _MQTT_Password);
+  Serial.printf("[WiFi_Manager] MQTT Client ID    : %s\n", _MQTT_Client_ID);
+  Serial.printf("[WiFi_Manager] MQTT Topic        : %s\n", _MQTT_Topic);
 }
 
 void WiFi_Manager::reset_config()
 {
   Serial.println();
-  Serial.println("CONFIGURATION RESET");
+  Serial.println("[WiFi_Manager] CONFIGURATION RESET");
 
   _prefs.begin("MQTT_conf", false);
   _prefs.clear();
@@ -131,7 +175,7 @@ void WiFi_Manager::reset_config()
 
   _WiFi_Manager.resetSettings();
 
-  Serial.println("Restarting...");
+  Serial.println("[WiFi_Manager] Restarting...");
   Serial.println();
   ESP.restart();
 }

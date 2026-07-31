@@ -31,8 +31,16 @@ class WiFi_Manager
     char (&_MQTT_Client_ID)[MQTT_CLIENT_ID_MAX_LEN];
     char (&_MQTT_Topic)[MQTT_TOPIC_MAX_LEN];
 
+    bool _enable_portal;
     uint8_t _config_portal_timeout;
+    bool _auto_connect;
     uint8_t _connect_timeout;
+    bool _auto_reconnect;
+    uint16_t _reconnect_interval;
+    uint8_t _max_reconnect_attempts;
+
+    uint8_t _reconnect_attempts = 0;
+    unsigned long _last_time = 0;
 
     WiFiManagerParameter _Custom_MQTT_Server;
     WiFiManagerParameter _Custom_MQTT_Port;
@@ -52,11 +60,17 @@ class WiFi_Manager
       char (&password)[MQTT_PASSWORD_MAX_LEN],
       char (&client_id)[MQTT_CLIENT_ID_MAX_LEN],
       char (&topic)[MQTT_TOPIC_MAX_LEN],
+      bool enable_portal = true,
       uint8_t config_portal_timeout = 120,
-      uint8_t connect_timeout = 10
+      bool auto_connect = true,
+      uint8_t connect_timeout = 10,
+      bool auto_reconnect = false,
+      uint16_t reconnect_interval = 5000,
+      uint8_t max_reconnect_attempts = 5
     );
 
     void begin(const char *ap_name, const char *ap_password);
+    void reconnect();
     void load_config();
     void save_config();
     void reset_config();
