@@ -53,6 +53,7 @@ class WiFi_Manager
     static void save_config_callback() {if (instance) {instance->save_config();}}
   
   public:
+    // Initialize WiFi Manager and MQTT configuration parameters
     WiFi_Manager(
       char (&server)[MQTT_SERVER_MAX_LEN],
       char (&port)[MQTT_PORT_MAX_LEN],
@@ -69,9 +70,14 @@ class WiFi_Manager
       uint8_t max_reconnect_attempts = 5
     );
 
+    // Initialize WiFi connection and web configuration portal
     void begin(const char *ap_name, const char *ap_password);
+    // Reconnect to WiFi when disconnected
     void reconnect();
+    // Load MQTT configuration from non-volatile storage
     void load_config();
+    // Save MQTT configuration to non-volatile storage
     void save_config();
+    // Reset WiFi and MQTT configuration to default values
     void reset_config();
 };
