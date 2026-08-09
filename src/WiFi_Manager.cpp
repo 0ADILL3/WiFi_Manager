@@ -22,27 +22,28 @@ void WiFi_Manager::add_parameter(const char *id, const char *label, char *buffer
 void WiFi_Manager::begin(
   const char *ap_name,
   const char *ap_password,
-  const char *nvs_namespace,
+  bool auto_connect,
   bool enable_config_portal,
+  bool auto_reconnect,
+  uint8_t connect_timeout,
   uint8_t config_portal_timeout,
   bool config_portal_blocking,
-  bool auto_connect,
-  uint8_t connect_timeout,
-  bool auto_reconnect,
   uint16_t reconnect_interval,
-  uint8_t max_reconnect_attempts
+  uint8_t max_reconnect_attempts,
+  const char *nvs_namespace
 )
 {
   strlcpy(ap_name_, ap_name, sizeof(ap_name_));
   strlcpy(ap_password_, ap_password, sizeof(ap_password_));
   strlcpy(nvs_namespace_, nvs_namespace, sizeof(nvs_namespace_));
 
+  auto_connect_ = auto_connect;
   enable_config_portal_ = enable_config_portal;
+  auto_reconnect_ = auto_reconnect;
+
+  connect_timeout_ = connect_timeout;
   config_portal_timeout_ = config_portal_timeout;
   config_portal_blocking_ = config_portal_blocking;
-  auto_connect_ = auto_connect;
-  connect_timeout_ = connect_timeout;
-  auto_reconnect_ = auto_reconnect;
   reconnect_interval_ = reconnect_interval;
   max_reconnect_attempts_ = max_reconnect_attempts;
 
@@ -54,7 +55,7 @@ void WiFi_Manager::begin(
 
   WiFi_Manager_.setEnableConfigPortal(enable_config_portal_);
   WiFi_Manager_.setConfigPortalTimeout(config_portal_timeout_);
-  WiFi_Manager_.setConfigPortalBlocking(config_portal_blocking);
+  WiFi_Manager_.setConfigPortalBlocking(config_portal_blocking_);
   WiFi_Manager_.setConnectTimeout(connect_timeout_);
 
   if (!WiFi_Manager_.autoConnect(ap_name_, ap_password_))

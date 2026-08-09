@@ -31,12 +31,13 @@ class WiFi_Manager
 
     std::vector<custom_parameter> custom_params_;
 
+    bool auto_connect_;
     bool enable_config_portal_;
+    bool auto_reconnect_;
+
+    uint8_t connect_timeout_;
     uint8_t config_portal_timeout_;
     bool config_portal_blocking_;
-    bool auto_connect_;
-    uint8_t connect_timeout_;
-    bool auto_reconnect_;
     uint16_t reconnect_interval_;
     uint8_t max_reconnect_attempts_;
 
@@ -59,15 +60,15 @@ class WiFi_Manager
     void begin(
       const char *ap_name,
       const char *ap_password,
-      const char *nvs_namespace = "app_conf",
+      bool auto_connect = true,
       bool enable_config_portal = true,
+      bool auto_reconnect = false,
+      uint8_t connect_timeout = 10,
       uint8_t config_portal_timeout = 120,
       bool config_portal_blocking = true,
-      bool auto_connect = true,
-      uint8_t connect_timeout = 10,
-      bool auto_reconnect = false,
       uint16_t reconnect_interval = 5000,
-      uint8_t max_reconnect_attempts = 0
+      uint8_t max_reconnect_attempts = 0,
+      const char *nvs_namespace = "app_conf"
     );
     // Handle non-blocking config portal (if config_portal_blocking = false) and WiFi reconnection
     void handle();
