@@ -52,7 +52,8 @@ void WiFi_Manager::begin(
   load_config();
   
   WiFi_Manager_.setSaveConfigCallback(save_config_callback_);
-
+  WiFi_Manager_.setSaveParamsCallback(save_config_callback_);
+  WiFi_Manager_.setBreakAfterConfig(true);
   WiFi_Manager_.setEnableConfigPortal(enable_config_portal_);
   WiFi_Manager_.setConfigPortalTimeout(config_portal_timeout_);
   WiFi_Manager_.setConfigPortalBlocking(config_portal_blocking_);
@@ -152,11 +153,6 @@ void WiFi_Manager::save_config()
     prefs_.end();
   }
   else {Serial.printf("\n[WiFi_Manager] Failed to initialize NVS\n");}
-
-  Serial.println("[WiFi_Manager] Restarting to apply changes...");
-  Serial.println();
-  delay(3000); 
-  ESP.restart();
 }
 
 void WiFi_Manager::reset_config()

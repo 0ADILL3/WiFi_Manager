@@ -14,13 +14,15 @@ void setup() {
   wifiManager.begin(
     "ESP32_Background", 
     "12345678", 
-    "app_conf",  // namespace nvs
+    true,        // auto connect
     true,        // aktifkan portal
+    true,        // AKTIFKAN AUTO-RECONNECT
+    10,          // timeout connect WiFi (detik)
     120,         // timeout portal (detik)
     false,       // SET NON-BLOCKING!
-    true,        // auto connect
-    10,          // timeout connect WiFi (detik)
-    true         // AKTIFKAN AUTO-RECONNECT
+    5000,        // set reconnect interval
+    0,           // max_reconnect_attempts (0 untuk tidak ada batas)
+    "app_conf"   // namespace nvs
   );
 
   Serial.println("\nSetup selesai, masuk ke loop() tanpa hambatan!");
