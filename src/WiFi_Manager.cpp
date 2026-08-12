@@ -61,25 +61,22 @@ void WiFi_Manager::begin(
 
   if (!WiFi_Manager_.autoConnect(ap_name_, ap_password_))
   {
-    Serial.println("[WiFi_Manager] Failed connect to WiFi");
+    WIFI_MANAGER_LOG_F("Failed connect to WiFi");
     
     if (auto_connect_) 
     {
-      Serial.println("[WiFi_Manager] Restarting...");
-      Serial.println();
+      WIFI_MANAGER_LOG_F("Restarting...\n\n");
       ESP.restart();
     } 
     else 
     {
-      Serial.println("[WiFi_Manager] Proceeding offline, will try to reconnect in background...");
-      Serial.println();
+      WIFI_MANAGER_LOG_F("Proceeding offline, will try to reconnect in background...\n\n");
     }
   }
   else
   {
-    Serial.println();
-    Serial.println("[WiFi_Manager] WiFi Connected");
-    Serial.printf("[WiFi_Manager] IP address: %s\n", WiFi.localIP().toString().c_str());
+    WIFI_MANAGER_LOG_F("WiFi Connected");
+    WIFI_MANAGER_LOG_F("IP address: %s\n", WiFi.localIP().toString().c_str());
   }
 }
 
@@ -96,14 +93,12 @@ void WiFi_Manager::reconnect()
     if (WiFi.status() != WL_CONNECTED)
     {
       reconnect_attempts_++;
-      Serial.printf("\n[WiFi_Manager] Reconnecting...(%d attempt)\n", reconnect_attempts_);
+      WIFI_MANAGER_LOG_F("Reconnecting...(%d attempt)\n", reconnect_attempts_);
       WiFi.reconnect();
       if (max_reconnect_attempts_ > 0 && reconnect_attempts_ >= max_reconnect_attempts_)
       {
         reconnect_attempts_ = 0;
-        Serial.println();
-        Serial.println("[WiFi_Manager] Reconnecting timeout, Restarting...");
-        Serial.println();
+        WIFI_MANAGER_LOG_F("Reconnecting timeout, Restarting...\n\n");
         ESP.restart();
       }
     }
@@ -117,7 +112,7 @@ void WiFi_Manager::load_config()
 {
   if (prefs_.begin(nvs_namespace_, true))
   {
-    Serial.printf("\n[WiFi_Manager] Loading Configuration\n");
+    WIFI_MANAGER_LOG_F("Loading Configuration");
 
     for (auto& param : custom_params_)
     {
@@ -125,51 +120,50 @@ void WiFi_Manager::load_config()
       {
         prefs_.getString(param.id, param.buffer, param.max_len);
         param.wm_param->setValue(param.buffer, param.max_len);
-        Serial.printf("[WiFi_Manager] %-15s : %s\n", param.label, param.buffer);
+        WIFI_MANAGER_LOG_F("%-15s : %s", param.label, param.buffer);
       }
-      else {Serial.printf("[WiFi_Manager] %-15s : no saved key\n", param.label);}
+      else {WIFI_MANAGER_LOG_F("%-15s : no saved key", param.label);}
     }
     
-    Serial.printf("[WiFi_Manager] Configuration Loaded\n");
+    WIFI_MANAGER_LOG_F("Configuration Loaded\n");
     prefs_.end();
   }
-  else {Serial.printf("\n[WiFi_Manager] Failed to initialize NVS\n");}
+  else {WIFI_MANAGER_LOG_F("Failed to initialize NVS\n");}
 }
 
 void WiFi_Manager::save_config()
 {
   if (prefs_.begin(nvs_namespace_, false))
   {
-    Serial.printf("\n[WiFi_Manager] Saving Configuration\n");
+    WIFI_MANAGER_LOG_F("Saving Configuration");
 
     for (auto& param : custom_params_)
     {
       strlcpy(param.buffer, param.wm_param->getValue(), param.max_len);
       prefs_.putString(param.id, param.buffer);
-      Serial.printf("[WiFi_Manager] %-15s : %s\n", param.label, param.buffer);
+      WIFI_MANAGER_LOG_F("%-15s : %s", param.label, param.buffer);
     }
 
-    Serial.printf("[WiFi_Manager] Configuration Saved\n");
+    WIFI_MANAGER_LOG_F("Configuration Saved\n");
     prefs_.end();
   }
-  else {Serial.printf("\n[WiFi_Manager] Failed to initialize NVS\n");}
+  else {WIFI_MANAGER_LOG_F("Failed to initialize NVS\n");}
 }
 
 void WiFi_Manager::reset_config()
 {
   if (prefs_.begin(nvs_namespace_, false))
   {
-    if (prefs_.clear()) {Serial.printf("\n[WiFi_Manager] Configuration Reset Successfully\n");}
-    else {Serial.printf("\n[WiFi_Manager] Configuration Reset Failed\n");}
+    if (prefs_.clear()) {WIFI_MANAGER_LOG_F("Configuration Reset Successfully\n");}
+    else {WIFI_MANAGER_LOG_F("Configuration Reset Failed\n");}
     prefs_.end();
   }
-  else {Serial.printf("\n[WiFi_Manager] Failed to initialize NVS\n");}
+  else {WIFI_MANAGER_LOG_F("Failed to initialize NVS\n");}
 
   WiFi_Manager_.resetSettings();
-  Serial.println("[WiFi_Manager] WiFi Credentials Cleared");
+  WIFI_MANAGER_LOG_F("WiFi Credentials Cleared");
 
-  Serial.println("[WiFi_Manager] Restarting...");
-  Serial.println();
+  WIFI_MANAGER_LOG_F("Restarting...\n\n");
   ESP.restart();
 }
 
