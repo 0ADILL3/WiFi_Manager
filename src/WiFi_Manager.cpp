@@ -93,7 +93,7 @@ void WiFi_Manager::reconnect()
     if (WiFi.status() != WL_CONNECTED)
     {
       reconnect_attempts_++;
-      WIFI_MANAGER_LOG_F("Reconnecting...(%d attempt)\n", reconnect_attempts_);
+      WIFI_MANAGER_LOG_F("Reconnecting...(%d attempt)", reconnect_attempts_);
       WiFi.reconnect();
       if (max_reconnect_attempts_ > 0 && reconnect_attempts_ >= max_reconnect_attempts_)
       {
@@ -154,11 +154,11 @@ void WiFi_Manager::reset_config()
 {
   if (prefs_.begin(nvs_namespace_, false))
   {
-    if (prefs_.clear()) {WIFI_MANAGER_LOG_F("Configuration Reset Successfully\n");}
-    else {WIFI_MANAGER_LOG_F("Configuration Reset Failed\n");}
+    if (prefs_.clear()) {WIFI_MANAGER_LOG_F("Configuration Reset Successfully");}
+    else {WIFI_MANAGER_LOG_F("Configuration Reset Failed");}
     prefs_.end();
   }
-  else {WIFI_MANAGER_LOG_F("Failed to initialize NVS\n");}
+  else {WIFI_MANAGER_LOG_F("Failed to initialize NVS");}
 
   WiFi_Manager_.resetSettings();
   WIFI_MANAGER_LOG_F("WiFi Credentials Cleared");

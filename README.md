@@ -1,4 +1,4 @@
-# Custom WiFi_Manager library
+# WiFi_Manager library
 
 Library khusus untuk ESP32 yang membungkus (wrapper) [tzapu/WiFiManager](https://github.com/tzapu/WiFiManager) dan `Preferences.h`. Library ini memudahkan Anda mengatur koneksi WiFi dan **parameter custom dinamis apa pun** (seperti token API, server MQTT, threshold sensor, dll.) melalui *Captive Portal* di browser, lengkap dengan fitur penyimpanan memori non-volatile (NVS).
 
