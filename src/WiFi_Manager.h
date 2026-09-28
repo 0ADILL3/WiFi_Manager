@@ -6,36 +6,74 @@
 #include <Preferences.h>
 #include <vector>
 
-#define DEBUG_WIFI_MANAGER 1
+#define WIFI_MANAGER_DEBUG 1
 
-#if DEBUG_WIFI_MANAGER
+#if WIFI_MANAGER_DEBUG
   #define WIFI_MANAGER_LOG_F(fmt, ...) do {Serial.printf("\n[WiFi_Manager] " fmt, ##__VA_ARGS__);} while (0)
 #else
   #define WIFI_MANAGER_LOG_F(...) do {} while (0)
 #endif
 
-#define AP_NAME_MAX_LEN        32
-#define AP_PASSWORD_MAX_LEN    16
-#define NVS_NAMESPACE_MAX_LEN  16
+#ifndef WIFI_MANAGER_AP_NAME_MAX_LEN
+  #define WIFI_MANAGER_AP_NAME_MAX_LEN        32
+#endif
+#ifndef WIFI_MANAGER_AP_PASSWORD_MAX_LEN
+  #define WIFI_MANAGER_AP_PASSWORD_MAX_LEN    16
+#endif
+#ifndef WIFI_MANAGER_NVS_NAMESPACE_MAX_LEN
+  #define WIFI_MANAGER_NVS_NAMESPACE_MAX_LEN  16
+#endif
 
+/**
+ * @struct custom_parameter
+ * @brief Struktur data untuk menyimpan konfigurasi parameter kustom WiFi_Manager.
+ * @param id Identifier unik untuk parameter (kunci NVS & ID HTML).
+ * @param label Label teks yang ditampilkan pada antarmuka Web UI.
+ * @param buffer Pointer ke array karakter untuk menyimpan nilai input.
+ * @param max_len Kapasitas alokasi maksimal dari buffer.
+ * @param wm_param Pointer ke objek WiFiManagerParameter bawaan library.
+ */
 struct custom_parameter
 {
+  /** @brief Identifier unik untuk parameter (kunci NVS & ID HTML). */
   const char *id;
+  /** @brief Label teks yang ditampilkan pada antarmuka Web UI. */
   const char *label;
+  /** @brief Pointer ke array karakter untuk menyimpan nilai input. */
   char *buffer;
+  /** @brief Kapasitas alokasi maksimal dari buffer. */
   size_t max_len;
+  /** @brief Pointer ke objek WiFiManagerParameter bawaan library. */
   WiFiManagerParameter* wm_param;
 };
 
+/**
+ * @brief Kelas wrapper (pembungkus) untuk mengelola koneksi WiFi, Captive Portal, dan penyimpanan parameter.
+ * 
+ * Kelas ini mengintegrasikan library `WiFiManager` dengan library `Preferences` (NVS) pada platform ESP. 
+ * Sistem ini dirancang untuk memfasilitasi pengaturan jaringan dan variabel kustom melalui antarmuka web, 
+ * serta menyimpannya secara persisten.
+ * 
+ * Fitur utama dari kelas ini meliputi:
+ * 
+ * - Eksekusi Captive Portal dalam mode blocking maupun non-blocking (cocok untuk multitasking).
+ * 
+ * - Pengelolaan memori otomatis secara dinamis (pencegahan memory leak) untuk elemen parameter kustom.
+ * 
+ * - Sinkronisasi nilai otomatis antara Web UI, variabel lokal, dan Non-Volatile Storage (NVS).
+ * 
+ * - Fitur auto-reconnect di latar belakang berbasis waktu, lengkap dengan batasan percobaan (max attempts) 
+ *   dan fallback ke auto-restart.
+ */
 class WiFi_Manager
 {
   private:
     WiFiManager WiFi_Manager_;
     Preferences prefs_;
     
-    char ap_name_[AP_NAME_MAX_LEN];
-    char ap_password_[AP_PASSWORD_MAX_LEN];
-    char nvs_namespace_[NVS_NAMESPACE_MAX_LEN];
+    char ap_name_[WIFI_MANAGER_AP_NAME_MAX_LEN];
+    char ap_password_[WIFI_MANAGER_AP_PASSWORD_MAX_LEN];
+    char nvs_namespace_[WIFI_MANAGER_NVS_NAMESPACE_MAX_LEN];
 
     std::vector<custom_parameter> custom_params_;
 
